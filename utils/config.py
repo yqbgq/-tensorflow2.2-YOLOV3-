@@ -10,18 +10,19 @@
 #    ( ˶˙º˙˶ )୨  Have Fun!!!
 # ================================================================
 
-class yolo_config:
-    class_name = "./data/classes/coco.names"
-    anchors = "./data/anchors/baseline_anchors.txt"
+class YoloConfig:
+    class_name = "../data/classes/coco.names"
+    anchors = "../data/anchors/baseline_anchors.txt"
 
     strides = [8, 16, 32]
     anchor_per_scale = 3
     iou_loss_threshold = 0.5
 
 
-class train_config:
+class TrainConfig:
     # 标签文件或者注释文件路径
-    annotation_path = "./data/dataset/yymnist_train.txt"
+    annotation_path = "../data/dataset/yymnist_train.txt"
+    img_path = "../data/dataset/train"
     batch_size = 1
     input_size = [416]
     data_aug = True
@@ -31,11 +32,12 @@ class train_config:
     total_epochs = 30
 
 
-class test_config:
-    annotation_path = "./data/dataset/yymnist_test.txt"
+class TestConfig:
+    annotation_path = "../data/dataset/yymnist_test.txt"
+    img_path = "../data/dataset/test"
     batch_size = 2
     input_size = 544
     data_aug = False
-    detected_image_path = "./data/detection/"
+    detected_image_path = "../data/detection/"
     score_threshold = 0.3
     iou_threshold = 0.45
