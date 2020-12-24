@@ -24,8 +24,8 @@ class TrainConfig:
     annotation_path = "../data/dataset/yymnist_train.txt"
     img_path = "../data/dataset/train"
     batch_size = 1
-    input_size = [416]
-    data_aug = True
+    input_size = 416
+    # data_aug = True
     lr_init = 1e-3
     lr_end = 1e-6
     warmup_epochs = 2
@@ -37,7 +37,7 @@ class TestConfig:
     img_path = "../data/dataset/test"
     batch_size = 2
     input_size = 544
-    data_aug = False
+    # data_aug = False
     detected_image_path = "../data/detection/"
     score_threshold = 0.3
     iou_threshold = 0.45

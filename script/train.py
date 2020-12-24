@@ -16,6 +16,8 @@ from utils.config import YoloConfig as yolo_cfg
 from utils.config import TrainConfig as train_cfg
 
 # 动态分配显存
+from utils.dataloader import Dataloader
+
 gpus = tf.config.experimental.list_physical_devices('GPU')
 if gpus:
     for gpu in gpus:
@@ -26,4 +28,14 @@ if gpus:
 
 class Yolo:
     def __init__(self):
+        self.train_dataset = Dataloader('train')
+
         self.global_steps = tf.Variable(1, trainable=False, dtype=tf.int64)
+        self.log_dir = "../log"
+
+        self.steps_per_epoch = len(self.train_dataset)
+        self.warmup_steps = train_cfg.warmup_epochs * self.steps_per_epoch
+        self.total_steps = train_cfg.total_epochs * self.steps_per_epoch
+
+    def __build_model(self):
+        pass

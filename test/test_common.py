@@ -22,5 +22,10 @@ def test_get_anchors(anchor_path="../data/anchors/baseline_anchors.txt"):
     print(result)
 
 
+def test_load_annotations(path="../data/dataset/yymnist_train.txt"):
+    result = common.load_annotations(path)
+    print(result[0])
+
+
 if __name__ == "__main__":
-    test_get_anchors()
+    test_load_annotations()
