@@ -11,6 +11,9 @@
 # ================================================================
 import cv2
 import numpy as np
+import tensorflow as tf
+
+
 
 
 def read_class_names(class_file_name):
@@ -35,7 +38,7 @@ def load_annotations(path):
     with open(path, 'r') as f:
         txt = f.readlines()
         annotations = [line.strip() for line in txt if len(line.strip().split()[1:]) != 0]
-    # np.random.shuffle(annotations)
+    np.random.shuffle(annotations)
     return annotations
 
 
@@ -89,3 +92,5 @@ def bbox_iou(boxes1, boxes2):
     union_area = boxes1_area + boxes2_area - inter_area
 
     return inter_area / union_area
+
+

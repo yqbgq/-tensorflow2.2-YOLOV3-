@@ -36,9 +36,9 @@ class Dataloader:
         # self.aug_data = self.cfg.data_aug
 
         self.strides = np.array(self.yolo_cfg.strides)
-        self.classes = common.read_class_names(self.yolo_cfg.class_name)
-        self.num_classes = len(self.classes)
-        self.anchors = np.array(common.get_anchors(self.yolo_cfg.anchors))
+        self.classes = self.yolo_cfg.classes
+        self.num_classes = self.yolo_cfg.classes_num
+        self.anchors = np.array(self.yolo_cfg.anchors_list)
         self.anchor_per_scale = self.yolo_cfg.anchor_per_scale
         self.max_bbox_per_scale = 150
 
@@ -62,16 +62,16 @@ class Dataloader:
 
             batch_image = np.zeros((self.batch_size, self.input_size, self.input_size, 3), dtype=np.float32)
 
-            batch_label_small_bbox = np.zeros((self.batch_size, self.output_size[0], self.output_size[0],
-                                               self.anchor_per_scale, 5 + self.num_classes), dtype=np.float32)
-            batch_label_middle_bbox = np.zeros((self.batch_size, self.output_size[1], self.output_size[1],
+            batch_label_smaller_bbox = np.zeros((self.batch_size, self.output_size[0], self.output_size[0],
+                                                 self.anchor_per_scale, 5 + self.num_classes), dtype=np.float32)
+            batch_label_medium_bbox = np.zeros((self.batch_size, self.output_size[1], self.output_size[1],
                                                 self.anchor_per_scale, 5 + self.num_classes), dtype=np.float32)
-            batch_label_large_bbox = np.zeros((self.batch_size, self.output_size[2], self.output_size[2],
-                                               self.anchor_per_scale, 5 + self.num_classes), dtype=np.float32)
+            batch_label_larger_bbox = np.zeros((self.batch_size, self.output_size[2], self.output_size[2],
+                                                self.anchor_per_scale, 5 + self.num_classes), dtype=np.float32)
 
-            batch_small_bboxes = np.zeros((self.batch_size, self.max_bbox_per_scale, 4), dtype=np.float32)
-            batch_middle_bboxes = np.zeros((self.batch_size, self.max_bbox_per_scale, 4), dtype=np.float32)
-            batch_large_bboxes = np.zeros((self.batch_size, self.max_bbox_per_scale, 4), dtype=np.float32)
+            batch_smaller_bboxes = np.zeros((self.batch_size, self.max_bbox_per_scale, 4), dtype=np.float32)
+            batch_medium_bboxes = np.zeros((self.batch_size, self.max_bbox_per_scale, 4), dtype=np.float32)
+            batch_larger_bboxes = np.zeros((self.batch_size, self.max_bbox_per_scale, 4), dtype=np.float32)
 
             num = 0
             # 当还可以从数据集中取出 batch 时，则取出，否则停止迭代
@@ -85,25 +85,26 @@ class Dataloader:
                     # 这里的 bboxes 是一张图片上所有真值框的集合 [N, 5]
                     image, bboxes = self.parse_annotation(annotation)
 
-                    label_sbbox, label_mbbox, label_lbbox, sbboxes, mbboxes, lbboxes = self.preprocess_true_boxes(
-                        bboxes)
+                    label_smaller_bbox, label_medium_bbox, label_larger_bbox, smaller_bboxes \
+                        , medium_bboxes, larger_bboxes = self.preprocess_true_boxes(bboxes)
 
                     batch_image[num, :, :, :] = image
-                    batch_label_small_bbox[num, :, :, :, :] = label_sbbox
-                    batch_label_middle_bbox[num, :, :, :, :] = label_mbbox
-                    batch_label_large_bbox[num, :, :, :, :] = label_lbbox
-                    batch_small_bboxes[num, :, :] = sbboxes
-                    batch_middle_bboxes[num, :, :] = mbboxes
-                    batch_large_bboxes[num, :, :] = lbboxes
+                    batch_label_smaller_bbox[num, :, :, :, :] = label_smaller_bbox
+                    batch_label_medium_bbox[num, :, :, :, :] = label_medium_bbox
+                    batch_label_larger_bbox[num, :, :, :, :] = label_larger_bbox
+                    batch_smaller_bboxes[num, :, :] = smaller_bboxes
+                    batch_medium_bboxes[num, :, :] = medium_bboxes
+                    batch_larger_bboxes[num, :, :] = larger_bboxes
                     num += 1
                 self.batch_count += 1
-                batch_smaller_target = batch_label_small_bbox, batch_small_bboxes
-                batch_medium_target = batch_label_middle_bbox, batch_middle_bboxes
-                batch_larger_target = batch_label_large_bbox, batch_large_bboxes
+                batch_smaller_target = batch_label_smaller_bbox, batch_smaller_bboxes
+                batch_medium_target = batch_label_medium_bbox, batch_medium_bboxes
+                batch_larger_target = batch_label_larger_bbox, batch_larger_bboxes
 
                 # 返回的是图片集合，小分辨率真值，中分辨率真值和大分辨率真值
                 # 需要注意的是里面的坐标好像是原图上的坐标
                 # TODO 在 label 和 bboxes 中，都存在坐标信息，似乎冗余
+                # smaller意思是可以在最大分辨率下，寻找比较小的物体，larger则是在较低分辨率下找寻较大的物体
                 return batch_image, (batch_smaller_target, batch_medium_target, batch_larger_target)
             else:
                 self.batch_count = 0
@@ -231,5 +232,3 @@ class Dataloader:
         label_sbbox, label_mbbox, label_lbbox = label
         sbboxes, mbboxes, lbboxes = bboxes_x_y_w_h
         return label_sbbox, label_mbbox, label_lbbox, sbboxes, mbboxes, lbboxes
-
-

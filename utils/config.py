@@ -9,14 +9,20 @@
 #   
 #    ( ˶˙º˙˶ )୨  Have Fun!!!
 # ================================================================
+from utils import common
+
 
 class YoloConfig:
-    class_name = "../data/classes/coco.names"
+    class_name = "../data/classes/yymnist.names"
     anchors = "../data/anchors/baseline_anchors.txt"
 
     strides = [8, 16, 32]
     anchor_per_scale = 3
     iou_loss_threshold = 0.5
+
+    classes = common.read_class_names(class_name)
+    classes_num = len(classes)
+    anchors_list = common.get_anchors(anchors)
 
 
 class TrainConfig:

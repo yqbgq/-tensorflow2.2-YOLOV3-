@@ -1,14 +1,16 @@
 # ================================================================
 #
 #   Editor      : Pycharm
-#   File name   : test_backbone
+#   File name   : test_yolov3
 #   Author      : HuangWei
-#   Created date: 2020-12-23 22:29
+#   Created date: 2020-12-24 12:01
 #   Email       : 446296992@qq.com
-#   Description : 测试一下骨干网络的输出
+#   Description : 
 #   
 #    ( ˶˙º˙˶ )୨  Have Fun!!!
 # ================================================================
+from model import yolov3
+import numpy as np
 import tensorflow as tf
 
 from model import backbone
@@ -20,7 +22,7 @@ if gpus:
         tf.config.experimental.set_memory_growth(gpu, True)
     logical_gpus = tf.config.experimental.list_logical_devices('GPU')
 
-back = backbone.DarkNet53()
+back = backbone.DarkNet53(True)
 
 a = dataloader.Dataloader("train")
 
@@ -28,6 +30,13 @@ a = iter(a)
 
 images, targets = next(a)
 
+y = yolov3.Yolo(trainable=True)
+
 result = back(images)
 
-print("hello")
+del back
+
+print("now")
+result = y(result)
+
+print("hello!")

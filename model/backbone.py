@@ -15,8 +15,10 @@ from model.layers import *
 
 
 class DarkNet53(models.Model):
-    def __init__(self):
-        super(DarkNet53, self).__init__()
+    def __init__(self, trainable, **kwargs):
+        super(DarkNet53, self).__init__(**kwargs)
+        self.trainable = trainable
+
         self.__build_model()
 
     def __build_model(self):
@@ -47,8 +49,8 @@ class DarkNet53(models.Model):
         ])
 
     def call(self, inputs, training=None, mask=None):
-        route_1 = self.model1(inputs)
-        route_2 = self.model2(route_1)
-        route_3 = self.model3(route_2)
+        route_1 = self.model1(inputs)  # SHAPE: [N, 52, 52, 256]
+        route_2 = self.model2(route_1)  # SHAPE: [N, 26, 26, 512]
+        route_3 = self.model3(route_2)  # SHAPE: [N, 13, 13, 1024]
 
         return route_1, route_2, route_3
