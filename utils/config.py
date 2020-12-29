@@ -24,6 +24,8 @@ class YoloConfig:
     classes_num = len(classes)
     anchors_list = common.get_anchors(anchors)
 
+    ckpt_patt = "../ckpt/yolov3_{}.ckpt"
+
 
 class TrainConfig:
     # 标签文件或者注释文件路径

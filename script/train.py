@@ -19,6 +19,7 @@ import numpy as np
 
 from utils import cal_statics
 from utils.config import TrainConfig
+from utils.config import YoloConfig
 from utils.dataloader import Dataloader
 from model import yolov3
 
@@ -33,6 +34,7 @@ if gpus:
 
 def main():
     log_dir = "../log"
+    ckpt_patt = YoloConfig.ckpt_patt
 
     model = yolov3.Yolo(trainable=True)
     optimizer = tf.keras.optimizers.Adam()
@@ -92,7 +94,8 @@ def main():
                         tf.summary.scalar("loss/conf_loss", conf_loss, step=global_steps)
                         tf.summary.scalar("loss/prob_loss", prob_loss, step=global_steps)
                     writer.flush()
-        model.save_weights("./yolov3_{}.ckpt".format(epoch))
+        if (epoch + 1) % 2 == 0:
+            model.save_weights(ckpt_patt.format(epoch))
 
 
 if __name__ == "__main__":
