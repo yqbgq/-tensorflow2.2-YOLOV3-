@@ -12,18 +12,24 @@
 import cv2
 import tensorflow as tf
 import numpy as np
+import os
 
 from model import yolov3
 from utils import common
 
-from PIL import Image
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # 表示使用 CPU 进行计算
+# 动态分配显存
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    for gpu in gpus:
+        tf.config.experimental.set_memory_growth(gpu, True)
+    logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+    print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
 
 
 def detect(img_path):
     input_size = 416
     model = yolov3.Yolo(trainable=False)
-
-    model.summary()
 
     original_image = cv2.imread(img_path)
     original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
@@ -32,14 +38,25 @@ def detect(img_path):
     image_data = common.preprocess_img(np.copy(original_image), [input_size, input_size])
     image_data = image_data[np.newaxis, ...].astype(np.float32)
 
-    pred_bbox = model.predict(image_data)
-    pred_bbox = [tf.reshape(x, (-1, tf.shape(x)[-1])) for x in pred_bbox]
+    temp_result = model(image_data)
+    model.load_model()
+
+    pred_bbox = model(image_data)
+
+    pred_bbox = [tf.reshape(x[1], (-1, tf.shape(x[1])[-1])) for x in pred_bbox]
     pred_bbox = tf.concat(pred_bbox, axis=0)
+
     bboxes = common.postprocess_boxes(pred_bbox, original_image_size, input_size, 0.3)
     bboxes = common.nms(bboxes, 0.45, method='nms')
 
-    image = common.draw_bbox(original_image, bboxes)
-    image = Image.fromarray(image)
-    image.show()
+    image = common.draw_bbox(original_image, bboxes, classes=[i for i in range(10)])
+    # image = Image.fromarray(image)
+    # image.show()
+    # cv2.imwrite("./test.jpg", image)
+    cv2.imshow("result", image)
+    cv2.waitKey()
 
 
+if __name__ == "__main__":
+    path = "C://Users//huangwei//Desktop//yymnist//data//dataset//test//000002.jpg"
+    detect(path)

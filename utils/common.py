@@ -16,8 +16,6 @@ import numpy as np
 import tensorflow as tf
 import colorsys
 
-from utils.config import YoloConfig
-
 
 def read_class_names(class_file_name):
     """loads class name from a file"""
@@ -194,7 +192,7 @@ def bboxes_iou(boxes1, boxes2):
     return ious
 
 
-def draw_bbox(image, bboxes, classes=YoloConfig.classes_num, show_label=True):
+def draw_bbox(image, bboxes, classes, show_label=True):
     """
     bboxes: [x_min, y_min, x_max, y_max, probability, cls_id] format coordinates.
     """

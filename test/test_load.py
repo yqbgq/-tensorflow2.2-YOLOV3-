@@ -11,6 +11,5 @@
 # ================================================================
 from model import yolov3
 
-model = yolov3.Yolo(trainable=True)
+model = yolov3.Yolo(trainable=False)
 
-model.load_weights("C://Users//huangwei//Desktop//fsdownload//yolov3_29.ckpt.index")

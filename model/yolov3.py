@@ -9,10 +9,11 @@
 #   
 #    ( ˶˙º˙˶ )୨  Have Fun!!!
 # ================================================================
+from typing import List
+
 from tensorflow.keras import models
 
 from model.layers import *
-from model import backbone
 from utils import cal_statics
 from utils.config import YoloConfig
 
@@ -23,12 +24,40 @@ class Yolo(models.Model):
         self.class_num = YoloConfig.classes_num
         self.trainable = trainable
 
-        self.backbone = backbone.DarkNet53(trainable=self.trainable)
+        # self.backbone = backbone.DarkNet53(trainable=self.trainable)
 
         self.__build_model()
 
+    def save_model(self):
+        block_list = [self, self.model1, self.model2, self.model3, self.model4, self.model5,
+                      self.backbone_model1, self.backbone_model2, self.backbone_model3]
+        for block in block_list:
+            with open("../weights/{}".format(block.name), "wb+") as f:
+                pickle.dump(block.get_weights(), f)
+            for layer in block.layers:
+                if "conv" in layer.name or "res" in layer.name:
+                    layer.save_layer()
+
+    def load_model(self):
+        block_list = [self, self.model1, self.model2, self.model3, self.model4, self.model5,
+                      self.backbone_model1, self.backbone_model2, self.backbone_model3]
+        for block in block_list:
+            with open("../weights/{}".format(block.name), "rb+") as f:
+                weights = pickle.load(f)
+                block.set_weights(weights)
+            for layer in block.layers:
+                if "conv" in layer.name or "res" in layer.name:
+                    layer.load_layer()
+
+    def get_config(self):
+        return {"trainable": self.trainable, "class_num": self.class_num}
+
     def call(self, inputs, training=None, mask=None):
-        route_1, route_2, route_3 = self.backbone(inputs, training=self.trainable)
+        route_1 = self.backbone_model1(inputs)  # SHAPE: [N, 52, 52, 256]
+        route_2 = self.backbone_model2(route_1)  # SHAPE: [N, 26, 26, 512]
+        route_3 = self.backbone_model3(route_2)  # SHAPE: [N, 13, 13, 1024]
+
+        # route_1, route_2, route_3 = self.backbone(inputs, training=self.trainable)
         # route_1, route_2, route_3 = inputs
         smaller_bbox, medium_bbox, larger_bbox = self.__forward([route_1, route_2, route_3])
         smaller_predict = cal_statics.decode(smaller_bbox, 0)
@@ -53,6 +82,32 @@ class Yolo(models.Model):
         return [smaller_bbox, medium_bbox, larger_bbox]
 
     def __build_model(self):
+        self.backbone_model1 = models.Sequential([
+            conv([3, 3, 3, 32]),
+            conv([3, 3, 32, 64], down=True),
+            res_block(64, 32, 64),
+            conv([3, 3, 64, 128], down=True),
+            res_block(128, 64, 128),
+            res_block(128, 64, 128),
+            conv([3, 3, 128, 256], down=True),
+            res_block(256, 128, 256), res_block(256, 128, 256), res_block(256, 128, 256),
+            res_block(256, 128, 256), res_block(256, 128, 256), res_block(256, 128, 256),
+            res_block(256, 128, 256), res_block(256, 128, 256)
+        ])
+
+        self.backbone_model2 = models.Sequential([
+            conv([3, 3, 256, 512], down=True),
+            res_block(512, 256, 512), res_block(512, 256, 512), res_block(512, 256, 512),
+            res_block(512, 256, 512), res_block(512, 256, 512), res_block(512, 256, 512),
+            res_block(512, 256, 512), res_block(512, 256, 512)
+        ])
+
+        self.backbone_model3 = models.Sequential([
+            conv([3, 3, 512, 1024], down=True),
+            res_block(1024, 512, 1024), res_block(1024, 512, 1024),
+            res_block(1024, 512, 1024), res_block(1024, 512, 1024)
+        ])
+
         # 第一个卷积，获得最大分辨率
         self.model1 = models.Sequential([
             conv([1, 1, 1024, 512]),

@@ -12,6 +12,7 @@
 import os
 import shutil
 import time
+import pickle
 
 import tensorflow as tf
 from tqdm import trange
@@ -37,6 +38,7 @@ def main():
     ckpt_patt = YoloConfig.ckpt_patt
 
     model = yolov3.Yolo(trainable=True)
+
     optimizer = tf.keras.optimizers.Adam()
     if os.path.exists(log_dir):
         shutil.rmtree(log_dir)
@@ -56,6 +58,7 @@ def main():
                 image_data, target = next(train_dataset)
                 with tf.GradientTape() as tape:
                     pred_result = model(image_data)
+
                     giou_loss = conf_loss = prob_loss = 0
 
                     for i in range(3):
@@ -94,9 +97,11 @@ def main():
                         tf.summary.scalar("loss/conf_loss", conf_loss, step=global_steps)
                         tf.summary.scalar("loss/prob_loss", prob_loss, step=global_steps)
                     writer.flush()
-        if (epoch + 1) % 2 == 0:
-            model.save_weights(ckpt_patt.format(epoch))
+            model.save_model()
+
 
 
 if __name__ == "__main__":
     main()
+    # model = yolov3.Yolo(trainable=True)
+    # a = model.backbone.model1.layers
