@@ -15,6 +15,7 @@ from utils import common
 class YoloConfig:
     class_name = "../data/classes/yymnist.names"
     anchors = "../data/anchors/baseline_anchors.txt"
+    log_dir = "../log"
 
     strides = [8, 16, 32]
     anchor_per_scale = 3
@@ -23,8 +24,6 @@ class YoloConfig:
     classes = common.read_class_names(class_name)
     classes_num = len(classes)
     anchors_list = common.get_anchors(anchors)
-
-    ckpt_patt = "../ckpt/yolov3_{}.ckpt"
 
 
 class TrainConfig:

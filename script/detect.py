@@ -5,7 +5,7 @@
 #   Author      : HuangWei
 #   Created date: 2020-12-29 10:37
 #   Email       : 446296992@qq.com
-#   Description : 使用已经训练好的权重文件来进行检测
+#   Description : 使用已经训练好的权重文件来进行检测测试
 #   
 #    ( ˶˙º˙˶ )୨  Have Fun!!!
 # ================================================================
@@ -18,13 +18,6 @@ from model import yolov3
 from utils import common
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # 表示使用 CPU 进行计算
-# 动态分配显存
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-    for gpu in gpus:
-        tf.config.experimental.set_memory_growth(gpu, True)
-    logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-    print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
 
 
 def detect(img_path):
@@ -38,7 +31,8 @@ def detect(img_path):
     image_data = common.preprocess_img(np.copy(original_image), [input_size, input_size])
     image_data = image_data[np.newaxis, ...].astype(np.float32)
 
-    temp_result = model(image_data)
+    # 先进行一次前向传播，初始化模型的参数，之后才能调用 set_weights
+    model(image_data)
     model.load_model()
 
     pred_bbox = model(image_data)
@@ -46,17 +40,15 @@ def detect(img_path):
     pred_bbox = [tf.reshape(x[1], (-1, tf.shape(x[1])[-1])) for x in pred_bbox]
     pred_bbox = tf.concat(pred_bbox, axis=0)
 
-    bboxes = common.postprocess_boxes(pred_bbox, original_image_size, input_size, 0.3)
+    bboxes = common.postprocess_boxes(pred_bbox, original_image_size, input_size, 0.45)
     bboxes = common.nms(bboxes, 0.45, method='nms')
 
     image = common.draw_bbox(original_image, bboxes, classes=[i for i in range(10)])
-    # image = Image.fromarray(image)
-    # image.show()
-    # cv2.imwrite("./test.jpg", image)
+
     cv2.imshow("result", image)
     cv2.waitKey()
 
 
 if __name__ == "__main__":
-    path = "C://Users//huangwei//Desktop//yymnist//data//dataset//test//000002.jpg"
+    path = "C://Users//huangwei//Desktop//yymnist//data//dataset//test//000022.jpg"
     detect(path)

@@ -9,8 +9,6 @@
 #   
 #    ( ˶˙º˙˶ )୨  Have Fun!!!
 # ================================================================
-from typing import List
-
 from tensorflow.keras import models
 
 from model.layers import *
@@ -24,11 +22,10 @@ class Yolo(models.Model):
         self.class_num = YoloConfig.classes_num
         self.trainable = trainable
 
-        # self.backbone = backbone.DarkNet53(trainable=self.trainable)
-
         self.__build_model()
 
     def save_model(self):
+        """保存模型的参数"""
         block_list = [self, self.model1, self.model2, self.model3, self.model4, self.model5,
                       self.backbone_model1, self.backbone_model2, self.backbone_model3]
         for block in block_list:
@@ -39,6 +36,7 @@ class Yolo(models.Model):
                     layer.save_layer()
 
     def load_model(self):
+        """加载模型的参数"""
         block_list = [self, self.model1, self.model2, self.model3, self.model4, self.model5,
                       self.backbone_model1, self.backbone_model2, self.backbone_model3]
         for block in block_list:
@@ -53,19 +51,22 @@ class Yolo(models.Model):
         return {"trainable": self.trainable, "class_num": self.class_num}
 
     def call(self, inputs, training=None, mask=None):
+        """前向传播"""
         route_1 = self.backbone_model1(inputs)  # SHAPE: [N, 52, 52, 256]
         route_2 = self.backbone_model2(route_1)  # SHAPE: [N, 26, 26, 512]
         route_3 = self.backbone_model3(route_2)  # SHAPE: [N, 13, 13, 1024]
 
-        # route_1, route_2, route_3 = self.backbone(inputs, training=self.trainable)
-        # route_1, route_2, route_3 = inputs
+        """需要主义的是，这里 smaller_bbox 是小物体在大分辨率下小物体的预测框，而不是小分辨率下的检测结果"""
         smaller_bbox, medium_bbox, larger_bbox = self.__forward([route_1, route_2, route_3])
+
+        """三种预测框经过解码之后得到的预测结果"""
         smaller_predict = cal_statics.decode(smaller_bbox, 0)
         medium_predict = cal_statics.decode(medium_bbox, 1)
         larger_predict = cal_statics.decode(larger_bbox, 2)
         return [[smaller_bbox, smaller_predict], [medium_bbox, medium_predict], [larger_bbox, larger_predict]]
 
     def __forward(self, routes):
+        """获取routes是 backbone 的输出结果，在这里的 forward 是 YOLO 层的前向传播方式"""
         route_1, route_2, route_3 = routes
 
         larger_bbox = self.model1(route_3)
@@ -108,7 +109,7 @@ class Yolo(models.Model):
             res_block(1024, 512, 1024), res_block(1024, 512, 1024)
         ])
 
-        # 第一个卷积，获得最大分辨率
+        # 第一个卷积，获得最小分辨率
         self.model1 = models.Sequential([
             conv([1, 1, 1024, 512]),
             conv([3, 3, 512, 1024]),
@@ -119,7 +120,7 @@ class Yolo(models.Model):
             conv([1, 1, 1024, 3 * (self.class_num + 5)], activate=False, bn=False)
         ])
 
-        # 最大分辨率在进行一次卷积，然后up_sample进入下一个分辨率的计算
+        # 最小分辨率在进行一次卷积，然后up_sample进入下一个分辨率的计算
         self.model2 = models.Sequential([
             conv([1, 1, 512, 256]),
             up_sample()
@@ -141,6 +142,7 @@ class Yolo(models.Model):
             up_sample()
         ])
 
+        # 获取最大分辨率
         self.model5 = models.Sequential([
             conv([1, 1, 384, 128]),
             conv([3, 3, 128, 256]),
