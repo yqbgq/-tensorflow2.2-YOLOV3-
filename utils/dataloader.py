@@ -19,8 +19,6 @@ from utils import config
 from utils import common
 
 
-# TODO 要不要加一个 shuffle 的功能
-
 class Dataloader:
     def __init__(self, data_type):
         self.yolo_cfg = config.YoloConfig
@@ -33,7 +31,6 @@ class Dataloader:
         self.img_path = self.cfg.img_path
         self.input_size = self.cfg.input_size
         self.batch_size = self.cfg.batch_size
-        # self.aug_data = self.cfg.data_aug
 
         self.strides = np.array(self.yolo_cfg.strides)
         self.classes = self.yolo_cfg.classes

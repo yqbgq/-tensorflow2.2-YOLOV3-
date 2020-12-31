@@ -5,7 +5,7 @@
 #   Author      : HuangWei
 #   Created date: 2020-12-24 12:05
 #   Email       : 446296992@qq.com
-#   Description : 
+#   Description : 一些统计值的计算工具
 #   
 #    ( ˶˙º˙˶ )୨  Have Fun!!!
 # ================================================================
@@ -22,14 +22,19 @@ iou_loss_threshold = YoloConfig.iou_loss_threshold
 
 def decode(conv_output, i=0):
     """
-    return tensor of shape [batch_size, output_size, output_size, anchor_per_scale, 5 + num_classes]
-            contains (x, y, w, h, score, probability)
+    对预测的结果进行解码
+
+    :param conv_output: 卷积的输出
+    :param i: 表示分辨率的索引
+    :return: 解码之后的张量 其形状为： [batch_siz, output_size, output_size, anchor_per_scale, 5 + num_classes]
+             5 + num_classes 包含的内容为回归框的 x、y、w、h，回归框的置信度，各类的概率
     """
 
     conv_shape = tf.shape(conv_output)
     batch_size = conv_shape[0]
     output_size = conv_shape[1]
 
+    # conv_output 原本的形状 [batch_size, output_size, output_size, 3 * (5+classes_num)]
     conv_output = tf.reshape(conv_output, (batch_size, output_size, output_size, 3, 5 + classes_num))
 
     conv_raw_dxdy = conv_output[:, :, :, :, 0:2]
@@ -55,6 +60,7 @@ def decode(conv_output, i=0):
 
 
 def bbox_iou(boxes1, boxes2):
+    """计算两个框的交并比"""
     boxes1_area = boxes1[..., 2] * boxes1[..., 3]
     boxes2_area = boxes2[..., 2] * boxes2[..., 3]
 
@@ -74,6 +80,17 @@ def bbox_iou(boxes1, boxes2):
 
 
 def bbox_giou(boxes1, boxes2):
+    """
+    计算两个框的 GIOU
+
+    GIOU 是一种对 IOU 的改进， IOU 主要存在这的问题是当两个框没有重叠时， 无论两个框相距多远，IOU 都为0
+
+    GIOU 的计算方式：计算两个矩形框的最小外包矩形，求出最小外包矩形中不属于两个框的面积大小占整个外包矩形的比例
+                   计算 IOU ， GIOU = IOU - 比例
+
+    故 GIOU 的取值范围是 (-1, 1]
+
+    """
     boxes1 = tf.concat([boxes1[..., :2] - boxes1[..., 2:] * 0.5,
                         boxes1[..., :2] + boxes1[..., 2:] * 0.5], axis=-1)
     boxes2 = tf.concat([boxes2[..., :2] - boxes2[..., 2:] * 0.5,
@@ -105,6 +122,15 @@ def bbox_giou(boxes1, boxes2):
 
 
 def compute_loss(pred, conv, label, bboxes, i=0):
+    """
+    计算损失，分别是 GIOU 损失， 置信度损失以及 分类概率损失
+
+    :param pred: 卷积输出的结果 conv 经过解码之后得到的结果
+    :param conv: 卷积输出的结果
+    :param label: 真值 5 + classes_num
+    :param bboxes: 真值 框的 x_y_w_h
+    :param i: 分辨率的索引
+    """
     conv_shape = tf.shape(conv)
     batch_size = conv_shape[0]
     output_size = conv_shape[1]
@@ -118,28 +144,32 @@ def compute_loss(pred, conv, label, bboxes, i=0):
     pred_conf = pred[:, :, :, :, 4:5]
 
     label_xywh = label[:, :, :, :, 0:4]
-    respond_bbox = label[:, :, :, :, 4:5]
-    label_prob = label[:, :, :, :, 5:]
+    respond_bbox = label[:, :, :, :, 4:5]   # 表示回归框的置信度
+    label_prob = label[:, :, :, :, 5:]      # 表示每种类别的概率
 
     giou = tf.expand_dims(bbox_giou(pred_xywh, label_xywh), axis=-1)
     input_size = tf.cast(input_size, tf.float32)
 
     bbox_loss_scale = 2.0 - 1.0 * label_xywh[:, :, :, :, 2:3] * label_xywh[:, :, :, :, 3:4] / (input_size ** 2)
+    # 计算 GIOU 的损失
     giou_loss = respond_bbox * bbox_loss_scale * (1 - giou)
 
     iou = bbox_iou(pred_xywh[:, :, :, :, np.newaxis, :], bboxes[:, np.newaxis, np.newaxis, np.newaxis, :, :])
     max_iou = tf.expand_dims(tf.reduce_max(iou, axis=-1), axis=-1)
 
+    # 对于每一个预测框，预测失误的 mask 矩阵
     respond_bgd = (1.0 - respond_bbox) * tf.cast(max_iou < iou_loss_threshold, tf.float32)
 
     conf_focal = tf.pow(respond_bbox - pred_conf, 2)
 
+    # 计算置信度损失函数
     conf_loss = conf_focal * (
             respond_bbox * tf.nn.sigmoid_cross_entropy_with_logits(labels=respond_bbox, logits=conv_raw_conf)
             +
             respond_bgd * tf.nn.sigmoid_cross_entropy_with_logits(labels=respond_bbox, logits=conv_raw_conf)
     )
 
+    # 计算类别预测损失函数
     prob_loss = respond_bbox * tf.nn.sigmoid_cross_entropy_with_logits(labels=label_prob, logits=conv_raw_prob)
 
     giou_loss = tf.reduce_mean(tf.reduce_sum(giou_loss, axis=[1, 2, 3, 4]))

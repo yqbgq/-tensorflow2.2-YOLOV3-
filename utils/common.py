@@ -13,7 +13,6 @@ import random
 
 import cv2
 import numpy as np
-import tensorflow as tf
 import colorsys
 
 
@@ -44,7 +43,15 @@ def load_annotations(path):
 
 
 def preprocess_img(image, target_size, gt_boxes=None):
-    """对图片进行预处理"""
+    """
+    对图片进行预处理，不同大小的图片需要处理到 [target_size, target_size]大小
+
+    :param image: 图像矩阵
+    :param target_size: 目标矩阵大小
+    :param gt_boxes: 真值框，如果是训练阶段，在对图像进行处理之后，还需要对真值框进行相应的处理
+    :return: 处理后的图像矩阵，处理后的真值框
+    """
+    # 目标大小和图像现在的大小
     target_h, target_w = target_size
     image_h, image_w, _ = image.shape
 

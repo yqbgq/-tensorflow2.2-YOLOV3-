@@ -39,7 +39,7 @@ def main():
 
     model = yolov3.Yolo(trainable=True)                 # 生成 YOLO 模型，设置 trainable 为 True
 
-    optimizer = tf.keras.optimizers.Adam()              # 使用 Adam 优化器，后面会随着 epoch 更新学习率
+    optimizer = tf.keras.optimizers.SGD()              # 使用 Adam 优化器，后面会随着 epoch 更新学习率
 
     if os.path.exists(log_dir):                         # 检查输出日志的目录，清空目录下的过往日志
         shutil.rmtree(log_dir)
@@ -63,6 +63,9 @@ def main():
 
             for step in t:
                 # 获取图像数据和标签数据
+                # target 包括 label 和 bbox
+                # label 为 [batch_size, input_size, input_size, 3, 5 + classes_num]
+                # bbox 为 [batch_size, max_anchor, 4]
                 image_data, target = next(train_dataset)
 
                 # 计算梯度
@@ -73,8 +76,9 @@ def main():
 
                     # 对于三种分辨率下的预测框，计算相应的损失
                     for i in range(3):
+                        # conv 是卷积输出的结果， pred 是卷积输出结果的解码
                         conv, pred = pred_result[i][0], pred_result[i][1]
-                        loss_items = cal_statics.compute_loss(pred, conv, *target[i], i)
+                        loss_items = cal_statics.compute_loss(pred, conv, target[i][0], target[i][1], i)
                         giou_loss += loss_items[0]
                         conf_loss += loss_items[1]
                         prob_loss += loss_items[2]
