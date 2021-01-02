@@ -61,5 +61,5 @@ def detect(img_path):
 
 
 if __name__ == "__main__":
-    path = "C://Users//huangwei//Desktop//yymnist//data//dataset//train//000022.jpg"
+    path = "C://Users//huangwei//Desktop//yymnist//data//dataset//train//000001.jpg"
     detect(path)

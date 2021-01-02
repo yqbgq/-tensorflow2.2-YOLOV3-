@@ -100,7 +100,6 @@ class Dataloader:
 
                 # 返回的是图片集合，小分辨率真值，中分辨率真值和大分辨率真值
                 # 需要注意的是里面的坐标好像是原图上的坐标
-                # TODO 在 label 和 bboxes 中，都存在坐标信息，似乎冗余
                 # smaller意思是可以在最大分辨率下，寻找比较小的物体，larger则是在较低分辨率下找寻较大的物体
                 return batch_image, (batch_smaller_target, batch_medium_target, batch_larger_target)
             else:
@@ -184,7 +183,6 @@ class Dataloader:
                 # 处理锚框的 XY WH
                 anchors_x_y_w_h = np.zeros((self.anchor_per_scale, 4))
 
-                # TODO 这里又为什么这样处理锚框的坐标啊，迷惑
                 anchors_x_y_w_h[:, 0:2] = np.floor(bbox_x_y_w_h_scaled[i, 0:2]).astype(np.int32) + 0.5
                 anchors_x_y_w_h[:, 2:4] = self.anchors[i]
 
@@ -192,15 +190,12 @@ class Dataloader:
                 # 感觉有点多余？
                 iou_scale = common.bbox_iou(bbox_x_y_w_h_scaled[i][np.newaxis, :], anchors_x_y_w_h)
                 iou.append(iou_scale)
-                # TODO 可能是为了过滤比较小的目标嘛？
                 iou_mask = iou_scale > 0.3
 
                 if np.any(iou_mask):
                     xind, yind = np.floor(bbox_x_y_w_h_scaled[i, 0:2]).astype(np.int32)
 
                     label[i][yind, xind, iou_mask, :] = 0
-                    # TODO 放入的还是在原图上的坐标，但是转换为了锚框中间以及锚框的 W 和 H
-                    # TODO bboxes_x_y_w_h 和 label 里面都有在原图上真值框的坐标，冗余嘛?
                     label[i][yind, xind, iou_mask, 0:4] = bbox_x_y_w_h
                     label[i][yind, xind, iou_mask, 4:5] = 1.0
                     label[i][yind, xind, iou_mask, 5:] = smooth_onehot

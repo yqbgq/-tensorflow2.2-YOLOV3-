@@ -39,7 +39,7 @@ def main():
 
     model = yolov3.Yolo(trainable=True)                 # 生成 YOLO 模型，设置 trainable 为 True
 
-    optimizer = tf.keras.optimizers.SGD()              # 使用 Adam 优化器，后面会随着 epoch 更新学习率
+    optimizer = tf.keras.optimizers.Adam()              # 使用 Adam 优化器，后面会随着 epoch 更新学习率
 
     if os.path.exists(log_dir):                         # 检查输出日志的目录，清空目录下的过往日志
         shutil.rmtree(log_dir)
@@ -112,7 +112,7 @@ def main():
                     if global_steps < warmup_steps:
                         lr = global_steps / warmup_steps * TrainConfig.lr_init
                     else:
-                        lr = TrainConfig.lr_end + 0.4 * (TrainConfig.lr_init - TrainConfig.lr_end) * (
+                        lr = TrainConfig.lr_end + 0.5 * (TrainConfig.lr_init - TrainConfig.lr_end) * (
                             (1 + tf.cos((global_steps - warmup_steps) / (total_steps - warmup_steps) * np.pi))
                         )
                     optimizer.lr.assign(lr)

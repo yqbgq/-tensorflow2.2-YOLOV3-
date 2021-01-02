@@ -17,7 +17,11 @@ import colorsys
 
 
 def read_class_names(class_file_name):
-    """loads class name from a file"""
+    """
+    读取类名文件中的类名
+
+    :param class_file_name: 类名文件路径
+    """
     names = {}
     with open(class_file_name, 'r') as data:
         for ID, name in enumerate(data):
@@ -26,7 +30,11 @@ def read_class_names(class_file_name):
 
 
 def get_anchors(anchor_path):
-    """loads the anchors from a file"""
+    """
+    从锚框文件中读取锚框信息
+
+    :param anchor_path: 锚框路径
+    """
     with open(anchor_path) as f:
         anchors = f.readline()
     anchors = np.array(anchors.split(','), dtype=np.float32)
@@ -103,37 +111,48 @@ def bbox_iou(boxes1, boxes2):
 
 
 def postprocess_boxes(pred_bbox, org_img_shape, input_size, score_threshold):
+    """
+    对预测得到的锚框进行后处理
+
+    :param pred_bbox: 预测框
+    :param org_img_shape: 原图的形状
+    :param input_size: 输入图像的形状
+    :param score_threshold: 有效锚框的分数门槛
+    """
     valid_scale = [0, np.inf]
     pred_bbox = np.array(pred_bbox)
 
-    pred_xywh = pred_bbox[:, 0:4]
-    pred_conf = pred_bbox[:, 4]
-    pred_prob = pred_bbox[:, 5:]
+    pred_xywh = pred_bbox[:, 0:4]           # 预测的 X Y W H
+    pred_conf = pred_bbox[:, 4]             # 预测的锚框置信度
+    pred_prob = pred_bbox[:, 5:]            # 预测的锚框内物体的类别概率
 
-    # # (1) (x, y, w, h) --> (xmin, ymin, xmax, ymax)
+    # 对锚框坐标进行后处理，在进行编码时进行了预处理，在这里进行解码
     pred_coor = np.concatenate([pred_xywh[:, :2] - pred_xywh[:, 2:] * 0.5,
                                 pred_xywh[:, :2] + pred_xywh[:, 2:] * 0.5], axis=-1)
-    # # (2) (xmin, ymin, xmax, ymax) -> (xmin_org, ymin_org, xmax_org, ymax_org)
+
+    # 将锚框坐标还原到原图上
     org_h, org_w = org_img_shape
     resize_ratio = min(input_size / org_w, input_size / org_h)
 
+    # 判断是否在原图上进行了边缘填充
     dw = (input_size - resize_ratio * org_w) / 2
     dh = (input_size - resize_ratio * org_h) / 2
 
+    # 将缩放的图片还原到原图大小
     pred_coor[:, 0::2] = 1.0 * (pred_coor[:, 0::2] - dw) / resize_ratio
     pred_coor[:, 1::2] = 1.0 * (pred_coor[:, 1::2] - dh) / resize_ratio
 
-    # # (3) clip some boxes those are out of range
+    # 去除掉一些错误的预测框，如 X 的值大于 W 的值这样的
     pred_coor = np.concatenate([np.maximum(pred_coor[:, :2], [0, 0]),
                                 np.minimum(pred_coor[:, 2:], [org_w - 1, org_h - 1])], axis=-1)
     invalid_mask = np.logical_or((pred_coor[:, 0] > pred_coor[:, 2]), (pred_coor[:, 1] > pred_coor[:, 3]))
     pred_coor[invalid_mask] = 0
 
-    # # (4) discard some invalid boxes
+    # 出去掉一些错误的预测框，如该预测框的面积大小计算得并不位于 (o, inf) 之间的
     bboxes_scale = np.sqrt(np.multiply.reduce(pred_coor[:, 2:4] - pred_coor[:, 0:2], axis=-1))
     scale_mask = np.logical_and((valid_scale[0] < bboxes_scale), (bboxes_scale < valid_scale[1]))
 
-    # # (5) discard some boxes with low scores
+    # 去除掉一些置信度太低的预测框
     classes = np.argmax(pred_prob, axis=-1)
     scores = pred_conf * pred_prob[np.arange(len(pred_coor)), classes]
     score_mask = scores > score_threshold
@@ -145,6 +164,7 @@ def postprocess_boxes(pred_bbox, org_img_shape, input_size, score_threshold):
 
 def nms(bboxes, iou_threshold, sigma=0.3, method='nms'):
     """
+    执行 NMS 极大值抑制算法
     :param bboxes: (xmin, ymin, xmax, ymax, score, class)
 
     Note: soft-nms, https://arxiv.org/pdf/1704.04503.pdf

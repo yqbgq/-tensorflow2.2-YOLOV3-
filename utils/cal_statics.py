@@ -37,22 +37,27 @@ def decode(conv_output, i=0):
     # conv_output 原本的形状 [batch_size, output_size, output_size, 3 * (5+classes_num)]
     conv_output = tf.reshape(conv_output, (batch_size, output_size, output_size, 3, 5 + classes_num))
 
-    conv_raw_dxdy = conv_output[:, :, :, :, 0:2]
-    conv_raw_dwdh = conv_output[:, :, :, :, 2:4]
-    conv_raw_conf = conv_output[:, :, :, :, 4:5]
-    conv_raw_prob = conv_output[:, :, :, :, 5:]
+    conv_raw_dxdy = conv_output[:, :, :, :, 0:2]    # 获得 X 和 Y
+    conv_raw_dwdh = conv_output[:, :, :, :, 2:4]    # 获得 W 和 H
+    conv_raw_conf = conv_output[:, :, :, :, 4:5]    # 获得回归框的置信度
+    conv_raw_prob = conv_output[:, :, :, :, 5:]     # 获得各类的概率
 
+    # 这里 x 和 y 的形状是 [output_size, output_size]，如[52, 52]
+    # 代表的是各个分块
     y = tf.tile(tf.range(output_size, dtype=tf.int32)[:, tf.newaxis], [1, output_size])
     x = tf.tile(tf.range(output_size, dtype=tf.int32)[tf.newaxis, :], [output_size, 1])
 
+    # xy_grid 的 shape 为 [batch_num, output_size, output_size, 3, 2]
     xy_grid = tf.concat([x[:, :, tf.newaxis], y[:, :, tf.newaxis]], axis=-1)
     xy_grid = tf.tile(xy_grid[tf.newaxis, :, :, tf.newaxis, :], [batch_size, 1, 1, 3, 1])
     xy_grid = tf.cast(xy_grid, tf.float32)
 
+    # 对 XY 和 WH 及逆行解码
     pred_xy = (tf.sigmoid(conv_raw_dxdy) + xy_grid) * strides[i]
     pred_wh = (tf.exp(conv_raw_dwdh) * anchors[i]) * strides[i]
     pred_xywh = tf.concat([pred_xy, pred_wh], axis=-1)
 
+    # 解码置信度和各类的概率
     pred_conf = tf.sigmoid(conv_raw_conf)
     pred_prob = tf.sigmoid(conv_raw_prob)
 
