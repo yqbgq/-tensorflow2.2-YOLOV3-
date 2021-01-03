@@ -34,19 +34,12 @@
 3. 由于自定义层和自定义模型的原因，使用 TF 自带的保存权重方式我自己测试的时候无法成功。故而为每个层和模型分别写了保存和加载权重的函数，直接调用 model.save_model() 和 model.load_model() 即可保存和加载模型
 4. 将配置方法改成了配置类
 
-## 环境
-
-
-| python版本  |  TF版本 |
-| ----------- | ----------   |
-|  3.8  | 2.2   |
-
 ## 安装
 
 **安装项目依赖**
 
 ```
-$ pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 **获取网络权重**
@@ -65,9 +58,45 @@ https://drive.google.com/file/d/1yswFfenc7oewre0q6JkBkLRGyTnoKjSI/view?usp=shari
 ## 结果展示
 
 **demo展示**
-![](amos-blog.oss-accelerate.aliyuncs.com/img/21/1demo.png)
+
+<p align="center">
+    <img width="100%" src="https://amos-blog.oss-accelerate.aliyuncs.com/img/21/1demo.png" style="max-width:100%;">
+    </a>
+</p>
 
 **检测结果**
-![](amos-blog.oss-accelerate.aliyuncs.com/img/21/1result.png)
+<p align="center">
+    <img width="100%" src="https://amos-blog.oss-accelerate.aliyuncs.com/img/21/1result.png" style="max-width:100%;">
+    </a>
+</p>
 
+## 使用
 
+**克隆 [yymnist](https://github.com/YunYang1994/yymnist) 并创建数据**
+
+```
+git clone https://github.com/YunYang1994/yymnist.git
+python yymnist/make_data.py --images_num 10000 --images_path ./data/dataset/train --labels_txt ./data/dataset/yymnist_train.txt
+python yymnist/make_data.py --images_num 200  --images_path ./data/dataset/test  --labels_txt ./data/dataset/yymnist_test.txt
+```
+
+将得到的 train 和 test 数据集和标签文件放置在 /data/dataset 下
+
+**data文件夹组织方式**
+<p align="center">
+    <img width="40%" src="https://amos-blog.oss-accelerate.aliyuncs.com/img/21/1/dataset组织方式.png" style="max-width:100%;">
+    </a>
+</p>
+
+**使用如下代码来训练模型以及损失和学习率追踪**
+```
+cd ./script
+python train.py
+tensorboard --logdir ./data/log
+```
+
+**训练完之后使用如下代码来测试模型效果**
+```
+cd ./script
+python detect.py
+```
