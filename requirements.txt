@@ -1,0 +1,4 @@
+tensorflow_gpu==2.2.0
+tqdm==4.54.1
+numpy==1.19.4
+opencv_python==3.4.8.29

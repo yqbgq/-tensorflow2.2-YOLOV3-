@@ -56,10 +56,11 @@ def detect(img_path):
     image = common.draw_bbox(original_image, bboxes, classes=[i for i in range(10)])
 
     # 展示图像
-    cv2.imshow("result", image)
-    cv2.waitKey()
+    # cv2.imshow("result", image)
+    # cv2.waitKey()
+    cv2.imwrite("D://result.jpg", image)
 
 
 if __name__ == "__main__":
-    path = "C://Users//huangwei//Desktop//yymnist//data//dataset//train//000001.jpg"
+    path = "../data/demo/3.jpg"
     detect(path)
