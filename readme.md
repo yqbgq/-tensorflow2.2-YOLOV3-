@@ -58,9 +58,11 @@ https://drive.google.com/file/d/1yswFfenc7oewre0q6JkBkLRGyTnoKjSI/view?usp=shari
 ## 结果展示
 
 **demo展示**
+
 ![](https://github.com/yqbgq/-tensorflow2.2-YOLOV3-/blob/master/data/demo/demo.png)
 
 **检测结果**
+
 ![](https://github.com/yqbgq/-tensorflow2.2-YOLOV3-/blob/master/data/demo/result.png)
 
 ## 使用
@@ -76,6 +78,7 @@ python yymnist/make_data.py --images_num 200  --images_path ./data/dataset/test 
 将得到的 train 和 test 数据集和标签文件放置在 /data/dataset 下
 
 **data文件夹组织方式**
+
 ![](https://amos-blog.oss-accelerate.aliyuncs.com/img/21/1/dataset组织方式.png)
 
 **使用如下代码来训练模型以及损失和学习率追踪**
