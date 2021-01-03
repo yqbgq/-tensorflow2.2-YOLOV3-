@@ -58,17 +58,10 @@ https://drive.google.com/file/d/1yswFfenc7oewre0q6JkBkLRGyTnoKjSI/view?usp=shari
 ## 结果展示
 
 **demo展示**
-
-<p align="center">
-    <img width="100%" src="https://github.com/yqbgq/-tensorflow2.2-YOLOV3-/blob/master/data/demo/demo.png" style="max-width:100%;">
-    </a>
-</p>
+![](https://github.com/yqbgq/-tensorflow2.2-YOLOV3-/blob/master/data/demo/demo.png)
 
 **检测结果**
-<p align="center">
-    <img width="100%" src="https://github.com/yqbgq/-tensorflow2.2-YOLOV3-/blob/master/data/demo/result.png" style="max-width:100%;">
-    </a>
-</p>
+![](https://github.com/yqbgq/-tensorflow2.2-YOLOV3-/blob/master/data/demo/result.png)
 
 ## 使用
 
@@ -84,10 +77,6 @@ python yymnist/make_data.py --images_num 200  --images_path ./data/dataset/test 
 
 **data文件夹组织方式**
 ![](https://amos-blog.oss-accelerate.aliyuncs.com/img/21/1/dataset组织方式.png)
-<p align="center">
-    <img width="40%" src="https://amos-blog.oss-accelerate.aliyuncs.com/img/21/1/dataset组织方式.png" style="max-width:100%;">
-    </a>
-</p>
 
 **使用如下代码来训练模型以及损失和学习率追踪**
 ```
