@@ -60,13 +60,13 @@ https://drive.google.com/file/d/1yswFfenc7oewre0q6JkBkLRGyTnoKjSI/view?usp=shari
 **demo展示**
 
 <p align="center">
-    <img width="100%" src="https://amos-blog.oss-accelerate.aliyuncs.com/img/21/1demo.png" style="max-width:100%;">
+    <img width="100%" src="https://github.com/yqbgq/-tensorflow2.2-YOLOV3-/blob/master/data/demo/demo.png" style="max-width:100%;">
     </a>
 </p>
 
 **检测结果**
 <p align="center">
-    <img width="100%" src="https://amos-blog.oss-accelerate.aliyuncs.com/img/21/1result.png" style="max-width:100%;">
+    <img width="100%" src="https://github.com/yqbgq/-tensorflow2.2-YOLOV3-/blob/master/data/demo/result.png" style="max-width:100%;">
     </a>
 </p>
 
