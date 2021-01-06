@@ -132,7 +132,7 @@ def compute_loss(pred, conv, label, bboxes, i=0):
 
     :param pred: 卷积输出的结果 conv 经过解码之后得到的结果
     :param conv: 卷积输出的结果
-    :param label: 真值 5 + classes_num
+    :param label: 真值 5 + classes_num， 输出结果通过 sigmoid 计算得到的
     :param bboxes: 真值 框的 x_y_w_h
     :param i: 分辨率的索引
     """

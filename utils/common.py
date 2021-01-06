@@ -95,6 +95,7 @@ def bbox_iou(boxes1, boxes2):
     boxes1_area = boxes1[..., 2] * boxes1[..., 3]
     boxes2_area = boxes2[..., 2] * boxes2[..., 3]
 
+    # YOLOV3 网络中预测的是锚框的中心点坐标和锚框的长宽，因此在这里进行还原成左上角和右上角坐标
     boxes1 = np.concatenate([boxes1[..., :2] - boxes1[..., 2:] * 0.5,
                              boxes1[..., :2] + boxes1[..., 2:] * 0.5], axis=-1)
     boxes2 = np.concatenate([boxes2[..., :2] - boxes2[..., 2:] * 0.5,
@@ -126,7 +127,7 @@ def postprocess_boxes(pred_bbox, org_img_shape, input_size, score_threshold):
     pred_conf = pred_bbox[:, 4]             # 预测的锚框置信度
     pred_prob = pred_bbox[:, 5:]            # 预测的锚框内物体的类别概率
 
-    # 对锚框坐标进行后处理，在进行编码时进行了预处理，在这里进行解码
+    # 对锚框坐标进行后处理，预测时的目标时锚框的中心点坐标和锚框的长宽，在这里还原成左上角和右上角坐标
     pred_coor = np.concatenate([pred_xywh[:, :2] - pred_xywh[:, 2:] * 0.5,
                                 pred_xywh[:, :2] + pred_xywh[:, 2:] * 0.5], axis=-1)
 
