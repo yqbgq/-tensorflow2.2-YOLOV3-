@@ -1,4 +1,4 @@
-# 基于Tensorflow2.2的YOLOv3实现
+# 基于Tensorflow2.2的YOLOv3极简实现
 
 ## 前言
 
@@ -59,16 +59,11 @@ https://drive.google.com/file/d/1yswFfenc7oewre0q6JkBkLRGyTnoKjSI/view?usp=shari
 
 **demo展示**
 
-<p align="center">
-    <img width="100%" src="https://amos-blog.oss-accelerate.aliyuncs.com/img/21/1demo.png" style="max-width:100%;">
-    </a>
-</p>
+![](https://github.com/yqbgq/-tensorflow2.2-YOLOV3-/blob/master/data/demo/demo.png)
 
 **检测结果**
-<p align="center">
-    <img width="100%" src="https://amos-blog.oss-accelerate.aliyuncs.com/img/21/1result.png" style="max-width:100%;">
-    </a>
-</p>
+
+![](https://github.com/yqbgq/-tensorflow2.2-YOLOV3-/blob/master/data/demo/result.png)
 
 ## 使用
 
@@ -83,10 +78,8 @@ python yymnist/make_data.py --images_num 200  --images_path ./data/dataset/test 
 将得到的 train 和 test 数据集和标签文件放置在 /data/dataset 下
 
 **data文件夹组织方式**
-<p align="center">
-    <img width="40%" src="https://amos-blog.oss-accelerate.aliyuncs.com/img/21/1/dataset组织方式.png" style="max-width:100%;">
-    </a>
-</p>
+
+![](https://amos-blog.oss-accelerate.aliyuncs.com/img/21/1/dataset组织方式.png)
 
 **使用如下代码来训练模型以及损失和学习率追踪**
 ```
