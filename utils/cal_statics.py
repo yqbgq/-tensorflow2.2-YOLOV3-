@@ -69,6 +69,7 @@ def bbox_iou(boxes1, boxes2):
     boxes1_area = boxes1[..., 2] * boxes1[..., 3]
     boxes2_area = boxes2[..., 2] * boxes2[..., 3]
 
+    # 原本是中心点坐标加上 W 和 H，现在这里转换成左上角坐标和右下角坐标
     boxes1 = tf.concat([boxes1[..., :2] - boxes1[..., 2:] * 0.5,
                         boxes1[..., :2] + boxes1[..., 2:] * 0.5], axis=-1)
     boxes2 = tf.concat([boxes2[..., :2] - boxes2[..., 2:] * 0.5,
